@@ -81,4 +81,3 @@ userSchema.statics.getSecurityQuestions = function () {
 
 module.exports = mongoose.model('User', userSchema);
 module.exports.SECURITY_QUESTIONS = SECURITY_QUESTIONS;
-
