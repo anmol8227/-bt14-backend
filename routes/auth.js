@@ -46,17 +46,13 @@ router.get('/security-questions', (req, res) => {
 
 
 // ═════════════════════════════════════════════
-// REGISTER
+// REGISTER — Security questions removed
 // ═════════════════════════════════════════════
 router.post('/register', [
 
   body('name').notEmpty().withMessage('Name required'),
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
-
-  body('securityAnswers')
-    .isArray({ min: 3, max: 3 })
-    .withMessage('3 security answers required'),
 
 ], async (req, res) => {
 
@@ -67,7 +63,7 @@ router.post('/register', [
       return res.status(400).json({ success:false, errors:errors.array() });
     }
 
-    const { name, email, password, adminKey, securityAnswers } = req.body;
+    const { name, email, password, adminKey } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -82,35 +78,23 @@ router.post('/register', [
 
     // Admin key verification
     if (adminKey) {
-
       if (adminKey !== process.env.ADMIN_REGISTRATION_KEY) {
         return res.status(403).json({
           success:false,
           message:"Invalid Admin Key"
         });
       }
-
       role = "admin";
     }
-
-
-    const hashedAnswers = await Promise.all(
-      securityAnswers.map(async (ans, idx) => ({
-        questionIndex: idx,
-        answerHash: await bcrypt.hash(ans.toLowerCase().trim(),10)
-      }))
-    );
-
 
     const user = await User.create({
       name,
       email,
       password,
       role,
-      securityAnswers: hashedAnswers
     });
 
-    sendTokenResponse(user,201,res);
+    sendTokenResponse(user, 201, res);
 
   } catch(err) {
 
